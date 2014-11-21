@@ -40,6 +40,7 @@ import java.util.List;
 final class CameraConfigurationManager {
 
   private static final String TAG = "CameraConfiguration";
+  private static final String TAG2 = "GabrielLog";
 
   // This is bigger than the size of a small screen, which is still supported. The routine
   // below will still select the default (presumably 320x240) size for these. This prevents
@@ -177,7 +178,7 @@ final class CameraConfigurationManager {
 
     List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
     if (rawSupportedSizes == null) {
-      Log.w(TAG, "Device returned no supported preview sizes; using default");
+      Log.w(TAG2, "Device returned no supported preview sizes; using default");
       Camera.Size defaultSize = parameters.getPreviewSize();
       return new Point(defaultSize.width, defaultSize.height);
     }
@@ -199,13 +200,13 @@ final class CameraConfigurationManager {
       }
     });
 
-    if (Log.isLoggable(TAG, Log.INFO)) {
+    if (Log.isLoggable(TAG2, Log.INFO)) {
       StringBuilder previewSizesString = new StringBuilder();
       for (Camera.Size supportedPreviewSize : supportedPreviewSizes) {
         previewSizesString.append(supportedPreviewSize.width).append('x')
             .append(supportedPreviewSize.height).append(' ');
       }
-      Log.i(TAG, "Supported preview sizes: " + previewSizesString);
+      Log.i(TAG2, "Supported preview sizes: " + previewSizesString);
     }
 
     Point bestSize = null;
@@ -222,9 +223,16 @@ final class CameraConfigurationManager {
       boolean isCandidatePortrait = realWidth < realHeight;
       int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
       int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
+      //Ajuste Aplicacao SNET. Não utiliza app fullscreen, mas a camera tem q ser fullscreen.
+      if (maybeFlippedWidth == 1280 && screenResolution.x == 1196 && maybeFlippedHeight == screenResolution.y) {
+          Point exactPoint = new Point(realWidth, realHeight);
+          Log.i(TAG2, "(Gambiarra) Found preview size exactly matching screen size: " + exactPoint);
+          return exactPoint;
+      }
+      
       if (maybeFlippedWidth == screenResolution.x && maybeFlippedHeight == screenResolution.y) {
         Point exactPoint = new Point(realWidth, realHeight);
-        Log.i(TAG, "Found preview size exactly matching screen size: " + exactPoint);
+        Log.i(TAG2, "Found preview size exactly matching screen size: " + exactPoint);
         return exactPoint;
       }
       float aspectRatio = (float) maybeFlippedWidth / (float) maybeFlippedHeight;
@@ -238,10 +246,10 @@ final class CameraConfigurationManager {
     if (bestSize == null) {
       Camera.Size defaultSize = parameters.getPreviewSize();
       bestSize = new Point(defaultSize.width, defaultSize.height);
-      Log.i(TAG, "No suitable preview sizes, using default: " + bestSize);
+      Log.i(TAG2, "No suitable preview sizes, using default: " + bestSize);
     }
 
-    Log.i(TAG, "Found best approximate preview size: " + bestSize);
+    Log.i(TAG2, "Found best approximate preview size: " + bestSize);
     return bestSize;
   }
 
